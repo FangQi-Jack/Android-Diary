@@ -1,17 +1,17 @@
 # **OkHttp 3.14.9**
 当调用 Call 的 Enqueue 方法时，实现在 RealCall 中：
-```
-  @Override public void enqueue(Callback responseCallback) {
-    synchronized (this) {
-      if (executed) throw new IllegalStateException("Already Executed");
-      executed = true;
-    }
-    transmitter.callStart();
-    client.dispatcher().enqueue(new AsyncCall(responseCallback));
+```java
+@Override public void enqueue(Callback responseCallback) {
+  synchronized (this) {
+    if (executed) throw new IllegalStateException("Already Executed");
+    executed = true;
   }
+  transmitter.callStart();
+  client.dispatcher().enqueue(new AsyncCall(responseCallback));
+}
 ```
 其中执行了 Dispather 的 enqueue 方法：
-```
+```java
   void enqueue(AsyncCall call) {
     synchronized (this) {
       readyAsyncCalls.add(call);
@@ -65,7 +65,7 @@
   }
 ```
 在 enqueue 方法手机将当前 AsyncCall 放入 readyAsyncCalls 中，该队列用于保存准备好要执行的异步请求。如果当前请求不是 WebSocket 则会执行 findExistingCallWithHost 从已经存在的请求中查找与这个请求 host 相同的请求，如果存在则将新的 AsyncCall 的 callsPerHost 设置给已经存在的请求，该变量是 AtomicInteger 类型，用于记录 host 对应的真正运行的请求数。最后执行了 promoteAndExecute 方法，在 promoteAndExecute 方法中，通过遍历 readyAsyncCalls 找到所有可以立即执行的的 AsyncCall，并调用 AsyncCall 的 executeOn 方法：
-```
+```java
 final class AsyncCall extends NamedRunnable {
     /**
      * Attempt to enqueue this async call on {@code executorService}. This will attempt to clean up
@@ -119,7 +119,7 @@ final class AsyncCall extends NamedRunnable {
 }
 ```
 在 executeOn 方法中，将 AsynCall 添加到线程池中执行，AsyncCall 继承了 NameRunnable，在 NameRunnable 的 run 方法中会执行 AsyncCall 的 execute 方法，其中会执行 getResponseWithInterceptorChain 方法，该方法在 RealCall 中实现。
-```
+```java
   Response getResponseWithInterceptorChain() throws IOException {
     // Build a full stack of interceptors.
     List<Interceptor> interceptors = new ArrayList<>();
@@ -156,7 +156,7 @@ final class AsyncCall extends NamedRunnable {
   }
 ```
 在这里会获取创建 OkHttpClient 时添加的 Interceptor，然后创建 RetryAndFollowUpInterceptor、BridgeInterceptor、CacheInterceptor、ConnectInterceptor 以及 CallServerInterceptor，通过这些 Interceptor 创建 RealInterceptorChain，并执行它的 proceed 方法。
-```
+```java
   @Override public Response proceed(Request request) throws IOException {
     return proceed(request, transmitter, exchange);
   }
@@ -178,7 +178,7 @@ final class AsyncCall extends NamedRunnable {
 ## RetryAndFollowUpInterceptor
 This interceptor recovers from failures and follows redirects as necessary.
 这个拦截器主要用于失败重试和重定向。看它的 intercept 方法。
-```
+```java
 @Override public Response intercept(Chain chain) throws IOException {
     // 获取当前请求
     Request request = chain.request();
@@ -273,7 +273,7 @@ This interceptor recovers from failures and follows redirects as necessary.
 
 ## BridgeInterceptor
 这个拦截器的主要作用是桥接应用层和网络层，将用户请求转换成网络请求，然后请求网络，最后将网络响应转换成用户响应。
-```
+```java
   @Override public Response intercept(Chain chain) throws IOException {
     Request userRequest = chain.request();
     Request.Builder requestBuilder = userRequest.newBuilder();
@@ -355,7 +355,7 @@ BridgeInterceptor 主要完成以下工作：
 
 ##  CacheInterceptor
 CacheInterceptor 用于处理缓存相关逻辑。
-```
+```java
 @Override public Response intercept(Chain chain) throws IOException {
     // 取出缓存
     Response cacheCandidate = cache != null
@@ -460,26 +460,381 @@ CacheInterceptor 的主要工作：
 1、从缓存中获取数据，可能为 null
 2、获取缓存策略
 3、根据缓存策略做相应的处理
-    * 禁止使用网络和缓存，直接返回 504
-    * 使用缓存，直接返回缓存数据
-    * 同时使用网络和缓存，根据响应头判断使用哪一个，如果响应码为 304 则使用缓存并更新缓存，否则使用网络响应
+
+> 禁止使用网络和缓存，直接返回 504。
+>
+> 使用缓存，直接返回缓存数据。
+>
+> 同时使用网络和缓存，根据响应头判断使用哪一个，如果响应码为 304 则使用缓存并更新缓存使用网络响应，否则使用网络响应数据。
+
 4、执行下一个 Interceptor
 5、如果设置了缓存，则将数据更新到缓存中
 
 ##  ConnectInterceptor
 用于连接服务器并执行下一个 Interceptor。
+```java
+@Override public Response intercept(Chain chain) throws IOException {
+  RealInterceptorChain realChain = (RealInterceptorChain) chain;
+  Request request = realChain.request();
+  Transmitter transmitter = realChain.transmitter();
+
+  // We need the network to satisfy this request. Possibly for validating a conditional GET.
+  boolean doExtensiveHealthChecks = !request.method().equals("GET");
+  Exchange exchange = transmitter.newExchange(chain, doExtensiveHealthChecks);
+
+  return realChain.proceed(request, transmitter, exchange);
+}
 ```
-  @Override public Response intercept(Chain chain) throws IOException {
-    RealInterceptorChain realChain = (RealInterceptorChain) chain;
-    Request request = realChain.request();
-    Transmitter transmitter = realChain.transmitter();
 
-    // We need the network to satisfy this request. Possibly for validating a conditional GET.
-    boolean doExtensiveHealthChecks = !request.method().equals("GET");
-    Exchange exchange = transmitter.newExchange(chain, doExtensiveHealthChecks);
+ConnectInterceptor 的主要工作：
 
-    return realChain.proceed(request, transmitter, exchange);
+1、打开与服务器的网络连接。
+
+2、执行下一个 Interceptor，即 CallServerInterceptor，由它来处理请求和获取数据。
+
+ConnectInterceptor 的 intercept 方法中执行了 Transmitter 的 newExchange 方法：
+
+```java
+/** Returns a new exchange to carry a new request and response. */
+Exchange newExchange(Interceptor.Chain chain, boolean doExtensiveHealthChecks) {
+  synchronized (connectionPool) {
+    if (noMoreExchanges) {
+      throw new IllegalStateException("released");
+    }
+    if (exchange != null) {
+      throw new IllegalStateException("cannot make a new request because the previous response "
+          + "is still open: please call response.close()");
+    }
+  }
+
+  ExchangeCodec codec = exchangeFinder.find(client, chain, doExtensiveHealthChecks);
+  Exchange result = new Exchange(this, call, eventListener, exchangeFinder, codec);
+
+  synchronized (connectionPool) {
+    this.exchange = result;
+    this.exchangeRequestDone = false;
+    this.exchangeResponseDone = false;
+    return result;
+  }
+}
+```
+
+这里调用了 ExchangeFinder 的 find 方法用以查找一个可用的连接，ExchangeFinder 在 RetryAndFollowUpInterceptor 调用 Transmitter 的 prepareToConnect 方法时创建的。随后创建了 Exchange 并返回。来看看 find 方法：
+
+```java
+public ExchangeCodec find(
+    OkHttpClient client, Interceptor.Chain chain, boolean doExtensiveHealthChecks) {
+  int connectTimeout = chain.connectTimeoutMillis();
+  int readTimeout = chain.readTimeoutMillis();
+  int writeTimeout = chain.writeTimeoutMillis();
+  int pingIntervalMillis = client.pingIntervalMillis();
+  boolean connectionRetryEnabled = client.retryOnConnectionFailure();
+
+  try {
+    // 查找可用连接，如果连接不可用，会一直重试
+    RealConnection resultConnection = findHealthyConnection(connectTimeout, readTimeout,
+        writeTimeout, pingIntervalMillis, connectionRetryEnabled, doExtensiveHealthChecks);
+    return resultConnection.newCodec(client, chain);
+  } catch (RouteException e) {
+    trackFailure();
+    throw e;
+  } catch (IOException e) {
+    trackFailure();
+    throw new RouteException(e);
+  }
+}
+
+...
+  
+/**
+   * Finds a connection and returns it if it is healthy. If it is unhealthy the process is repeated
+   * until a healthy connection is found.
+   */
+  private RealConnection findHealthyConnection(int connectTimeout, int readTimeout,
+      int writeTimeout, int pingIntervalMillis, boolean connectionRetryEnabled,
+      boolean doExtensiveHealthChecks) throws IOException {
+    while (true) {
+      // 查找连接
+      RealConnection candidate = findConnection(connectTimeout, readTimeout, writeTimeout,
+          pingIntervalMillis, connectionRetryEnabled);
+
+      // If this is a brand new connection, we can skip the extensive health checks.
+      synchronized (connectionPool) {
+        if (candidate.successCount == 0 && !candidate.isMultiplexed()) {
+          return candidate;
+        }
+      }
+
+      // Do a (potentially slow) check to confirm that the pooled connection is still good. If it
+      // isn't, take it out of the pool and start again.
+      if (!candidate.isHealthy(doExtensiveHealthChecks)) {
+        candidate.noNewExchanges();
+        continue;
+      }
+
+      return candidate;
+    }
+  }
+
+...
+  
+  /**
+   * Returns a connection to host a new stream. This prefers the existing connection if it exists,
+   * then the pool, finally building a new connection.
+   */
+  private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,
+      int pingIntervalMillis, boolean connectionRetryEnabled) throws IOException {
+    boolean foundPooledConnection = false;
+    RealConnection result = null;
+    Route selectedRoute = null;
+    RealConnection releasedConnection;
+    Socket toClose;
+    synchronized (connectionPool) {
+      if (transmitter.isCanceled()) throw new IOException("Canceled");
+      hasStreamFailure = false; // This is a fresh attempt.
+
+      // Attempt to use an already-allocated connection. We need to be careful here because our
+      // already-allocated connection may have been restricted from creating new exchanges.
+      releasedConnection = transmitter.connection;
+      toClose = transmitter.connection != null && transmitter.connection.noNewExchanges
+          ? transmitter.releaseConnectionNoEvents()
+          : null;
+
+      if (transmitter.connection != null) {
+        // We had an already-allocated connection and it's good.
+        result = transmitter.connection;
+        releasedConnection = null;
+      }
+
+      if (result == null) {
+        // Attempt to get a connection from the pool.
+        if (connectionPool.transmitterAcquirePooledConnection(address, transmitter, null, false)) {
+          foundPooledConnection = true;
+          result = transmitter.connection;
+        } else if (nextRouteToTry != null) {
+          selectedRoute = nextRouteToTry;
+          nextRouteToTry = null;
+        } else if (retryCurrentRoute()) {
+          selectedRoute = transmitter.connection.route();
+        }
+      }
+    }
+    closeQuietly(toClose);
+
+    if (releasedConnection != null) {
+      eventListener.connectionReleased(call, releasedConnection);
+    }
+    if (foundPooledConnection) {
+      eventListener.connectionAcquired(call, result);
+    }
+    if (result != null) {
+      // If we found an already-allocated or pooled connection, we're done.
+      return result;
+    }
+
+    // If we need a route selection, make one. This is a blocking operation.
+    boolean newRouteSelection = false;
+    if (selectedRoute == null && (routeSelection == null || !routeSelection.hasNext())) {
+      newRouteSelection = true;
+      routeSelection = routeSelector.next();
+    }
+
+    List<Route> routes = null;
+    synchronized (connectionPool) {
+      if (transmitter.isCanceled()) throw new IOException("Canceled");
+
+      if (newRouteSelection) {
+        // Now that we have a set of IP addresses, make another attempt at getting a connection from
+        // the pool. This could match due to connection coalescing.
+        routes = routeSelection.getAll();
+        if (connectionPool.transmitterAcquirePooledConnection(
+            address, transmitter, routes, false)) {
+          foundPooledConnection = true;
+          result = transmitter.connection;
+        }
+      }
+
+      if (!foundPooledConnection) {
+        if (selectedRoute == null) {
+          selectedRoute = routeSelection.next();
+        }
+
+        // Create a connection and assign it to this allocation immediately. This makes it possible
+        // for an asynchronous cancel() to interrupt the handshake we're about to do.
+        result = new RealConnection(connectionPool, selectedRoute);
+        connectingConnection = result;
+      }
+    }
+
+    // If we found a pooled connection on the 2nd time around, we're done.
+    if (foundPooledConnection) {
+      eventListener.connectionAcquired(call, result);
+      return result;
+    }
+
+    // Do TCP + TLS handshakes. This is a blocking operation.
+    result.connect(connectTimeout, readTimeout, writeTimeout, pingIntervalMillis,
+        connectionRetryEnabled, call, eventListener);
+    connectionPool.routeDatabase.connected(result.route());
+
+    Socket socket = null;
+    synchronized (connectionPool) {
+      connectingConnection = null;
+      // Last attempt at connection coalescing, which only occurs if we attempted multiple
+      // concurrent connections to the same host.
+      if (connectionPool.transmitterAcquirePooledConnection(address, transmitter, routes, true)) {
+        // We lost the race! Close the connection we created and return the pooled connection.
+        result.noNewExchanges = true;
+        socket = result.socket();
+        result = transmitter.connection;
+
+        // It's possible for us to obtain a coalesced connection that is immediately unhealthy. In
+        // that case we will retry the route we just successfully connected with.
+        nextRouteToTry = selectedRoute;
+      } else {
+        connectionPool.put(result);
+        transmitter.acquireConnectionNoEvents(result);
+      }
+    }
+    closeQuietly(socket);
+
+    eventListener.connectionAcquired(call, result);
+    return result;
   }
 ```
 
+查找可用连接的优先级：**当前连接 > 连接池里的连接 > 创建新连接**。findConnection 方法就是执行此流程，直到找到一个可用连接返回。
+
+> 当前连接可用则直接使用它，否则从连接池中获取连接，如果连接池中没有则创建一个新的连接，并执行 TCP + TLS 握手，并将新连接放入连接池中。
+
+找可用连接后就会执行 CallServerInterceptor。
+
+## CallServerInterceptor
+
+```java
+@Override public Response intercept(Chain chain) throws IOException {
+  RealInterceptorChain realChain = (RealInterceptorChain) chain;
+  Exchange exchange = realChain.exchange();
+  Request request = realChain.request();
+
+  long sentRequestMillis = System.currentTimeMillis();
+
+  // 执行写入请求头
+  exchange.writeRequestHeaders(request);
+
+  boolean responseHeadersStarted = false;
+  Response.Builder responseBuilder = null;
+  if (HttpMethod.permitsRequestBody(request.method()) && request.body() != null) {
+    // If there's a "Expect: 100-continue" header on the request, wait for a "HTTP/1.1 100
+    // Continue" response before transmitting the request body. If we don't get that, return
+    // what we did get (such as a 4xx response) without ever transmitting the request body.
+    if ("100-continue".equalsIgnoreCase(request.header("Expect"))) {
+      exchange.flushRequest();
+      responseHeadersStarted = true;
+      exchange.responseHeadersStart();
+      responseBuilder = exchange.readResponseHeaders(true);
+    }
+
+    // 执行写入请求体
+    if (responseBuilder == null) {
+      if (request.body().isDuplex()) {
+        // Prepare a duplex body so that the application can send a request body later.
+        exchange.flushRequest();
+        BufferedSink bufferedRequestBody = Okio.buffer(
+            exchange.createRequestBody(request, true));
+        request.body().writeTo(bufferedRequestBody);
+      } else {
+        // Write the request body if the "Expect: 100-continue" expectation was met.
+        BufferedSink bufferedRequestBody = Okio.buffer(
+            exchange.createRequestBody(request, false));
+        request.body().writeTo(bufferedRequestBody);
+        bufferedRequestBody.close();
+      }
+    } else {
+      exchange.noRequestBody();
+      if (!exchange.connection().isMultiplexed()) {
+        // If the "Expect: 100-continue" expectation wasn't met, prevent the HTTP/1 connection
+        // from being reused. Otherwise we're still obligated to transmit the request body to
+        // leave the connection in a consistent state.
+        exchange.noNewExchangesOnConnection();
+      }
+    }
+  } else {
+    exchange.noRequestBody();
+  }
+
+  if (request.body() == null || !request.body().isDuplex()) {
+    exchange.finishRequest();
+  }
+
+  if (!responseHeadersStarted) {
+    exchange.responseHeadersStart();
+  }
+
+  if (responseBuilder == null) {
+    // 读取响应头
+    responseBuilder = exchange.readResponseHeaders(false);
+  }
+
+  Response response = responseBuilder
+      .request(request)
+      .handshake(exchange.connection().handshake())
+      .sentRequestAtMillis(sentRequestMillis)
+      .receivedResponseAtMillis(System.currentTimeMillis())
+      .build();
+
+  int code = response.code();
+  if (code == 100) {
+    // server sent a 100-continue even though we did not request one.
+    // try again to read the actual response
+    response = exchange.readResponseHeaders(false)
+        .request(request)
+        .handshake(exchange.connection().handshake())
+        .sentRequestAtMillis(sentRequestMillis)
+        .receivedResponseAtMillis(System.currentTimeMillis())
+        .build();
+
+    code = response.code();
+  }
+
+  exchange.responseHeadersEnd(response);
+
+  if (forWebSocket && code == 101) {
+    // Connection is upgrading, but we need to ensure interceptors see a non-null response body.
+    response = response.newBuilder()
+        .body(Util.EMPTY_RESPONSE)
+        .build();
+  } else {
+    // 读取响应体
+    response = response.newBuilder()
+        .body(exchange.openResponseBody(response))
+        .build();
+  }
+
+  if ("close".equalsIgnoreCase(response.request().header("Connection"))
+      || "close".equalsIgnoreCase(response.header("Connection"))) {
+    exchange.noNewExchangesOnConnection();
+  }
+
+  if ((code == 204 || code == 205) && response.body().contentLength() > 0) {
+    throw new ProtocolException(
+        "HTTP " + code + " had non-zero Content-Length: " + response.body().contentLength());
+  }
+
+  // 返回响应
+  return response;
+}
+```
+
+CallServerInterceptor 的主要作用：
+
+1、写入请求头
+
+2、写入请求体
+
+3、读取响应头
+
+4、读取响应体
+
+5、返回响应
 
