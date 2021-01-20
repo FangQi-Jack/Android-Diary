@@ -1,0 +1,16 @@
+# Handler相关原理
+
+### 在UI线程中创建handler对象是没有调用Looper.prepare()方法，而在其他线程中创建handler时必须要首先调用Looper.prepare()。为什么？
+
+* 许多人都认为Activity的入口是onCreate()方法，其实是ActivityThread中的main()方法。在这个main()方法中会调用执行Looper.prepareMainLooper()，而在prepareMainLooper()中会首先执行prepare(false)（注意此处参数为false），在prepare()方法内部会先判断sThreadLocal.get()是否为空（在Java中，一般情况下，通过ThreadLocal.set() 到线程中的对象是该线程自己使用的对象，其他线程是不需要访问的，也访问不到的，各个线程中访问的是不同的对象。），如果不为空会抛出"Only one Looper may be created per thread"异常，从此异常也说明一个线程只能与一个looper关联，为空则会创建一个新的looper并set到threadLocal中。因此在UI Thread中会始终有一个looper，而无须手动调用prepare方法创建。
+### 创建的handler如何与looper关联？
+* 当通过handler的无参构造方法创建handler，在这个构造方法中会调用Handler类中的两个参数的构造方法，在这个构造方法中会调用Looper.myLooper()，在myLooper()方法中还是通过threadLocal.get()来获取一个looper，如果获取的到的looper不为空时会取得与此looper关联的消息队列。为空时会抛出一个RuntimeException("Can't create handler inside thread that has not called Looper.prepare()")。
+### 如何通过sendMessage()发送消息并回调handleMessage()方法处理消息？
+* 其实在Handler类中的那么多发送消息的方法除了sendMessageAtFrontOfQueue()，都是通过调用sendMessageAtTime()实现发送消息的。而通过对比这个两个方法，可以发现他们本质上一样的，只不过在前者中将第三个参数uptimeMillis参数置0，这个参数就是我们要发送消息的时间，等于系统开机到当前的毫秒数加上传递消息的传入的延时时间。最后在sendMessageAtTime()中会首先获取在创建handler时取到的消息队列，当messageQueue不为空时，会调用enqueueMessage()方法，并将消息队列、消息以及消息要发送的时间传递过去，在enqueueMessage中会首先将msg.target设置为this，也就是handler本身，最后再通过调用MessageQueue中的enqueueMessage()方法实现真正的将消息入列。在消息队列中的消息都是按时间顺序进行排序的，所以sendMessageAtFrontOfQueue实质上就是通过将时间设置为0从而将消息添加到队列的队首。
+* 那么，消息已经入列，如何取出并处理呢？在Looper.loop()中，会首先通过myLooper()方法获取到
+looper，在looper不为空的情况下会取出与此looper对应的消息队列，然后通过一个阻塞式的死循环不断的调用queue.next获取下一个消息，如果消息队列不存在要处理的消息，会进入阻塞状态，一直等待新的消息。当取到了要处理的消息，会通过msg.target.dispatchMessage()处理消息，在disptchMessage中，如果mCallBack不为空，则会调用mCallBack的handleMessage，否则直接调用handleMessage。
+* 在最后我们会通过looper.quit来关闭looper，而其实际上也是调用MessageQueue中的quit，在后者中通过mQuitAllowed参数来判断是否可以将消息队列退出。当mQuitAllowed为false会抛出"Main thread not allowed to quit."异常，所以与Main Thread关联的looper对应的消息队列是不允许通过此方法退出的。mQuitAllowed参数是通过Looper.prepare设置的，在prepareMainLooper调用prepare时将其设置为false，而在普通线程中是默认设置为true的。quit方法实质就是对mQuitting标记置位，这个mQuitting标记在MessageQueue的阻塞等待next方法中用做了判断条件，所以可以通过quit方法退出整个当前线程的loop循环。
+## Handler中其他常用的方法
+* handler的post系列的发送消息的方法，内部也是通过调用sendMessageDelayed实现消息的发送，只是将mCallBack设置为传入的Runnable对象，也就是在dispatchMessage方法中用到的。在dispatchMessage方法中当msg.callback不等于null的时候会调用handleCallBack方法，在此方法中会执行Runnable对象的run方法，所以说我们在Runnable对象的run()方法里更新UI的效果完全和在handleMessage()方法中更新UI相同，这个Runnable的run方法并没有创建新线程，而是在当前线程中阻塞执行。
+* runOnUiThread(Runnable)方法中实质上是通过判断当前线程是否为UI线程，如果true，则执行Runnable的run方法，否则通过handler的post方法将Runnable发送给UI线程。
+* 另一个常用的就是HandlerThread，HandlerThread其实就是Thread、Looper和Handler的组合实现，在HandlerThread中主要是初始化Looper，提供一个looper对象给新创建的Handler对象，从而使handler处理消息是在子线程中执行。特别强调的是，必须在实例化HandlerThread之前调用start方法，因为在HandlerThread中的looper创建是在run方法中。
