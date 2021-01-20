@@ -1,0 +1,5 @@
+# **ContentProvider 的启动过程**
+## query 方法到 AMS 的过程
+![](ContentProvider query 方法到 AMS 的过程.png)
+## AMS 启动 ContentProvider 的过程
+![](AMS 启动 ContentProvider 的过程.png)
