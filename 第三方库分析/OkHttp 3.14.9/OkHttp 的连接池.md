@@ -6,7 +6,7 @@
 
 RealConnectionPool 在 ConnectionPool 的构造函数中被构造。
 
-RealConnectionPool 中维护了一个 RealConnection 的双向队列、失败路由黑名单。
+RealConnectionPool 中维护了一个 RealConnection 的双向队列、失败路由黑名单。RealConnection 是对 Socket 连接的包装。
 
 ```java
 public final class ConnectionPool {
