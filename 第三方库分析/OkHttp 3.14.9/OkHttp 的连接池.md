@@ -1,6 +1,6 @@
 # OkHttp 的连接池
 
-在 ConnectInterceptor 查找可用连接时，会尝试从连接池中查找。连接复用生气了 TCP + TSL 握手，提高了效率。
+在 ConnectInterceptor 查找可用连接时，会尝试从连接池中查找。连接复用省去了 TCP + TSL 握手，提高了效率。
 
 ## RealConnectionPool
 
