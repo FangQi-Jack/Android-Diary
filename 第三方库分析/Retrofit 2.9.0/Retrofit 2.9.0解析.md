@@ -1,5 +1,5 @@
 # **Retrofit 2.9.0**
-https://blog.csdn.net/qq_43935080/article/details/108226270
+
 ## 简单使用
 ```
 val okHttpClient = OkHttpClient.Builder().apply {
