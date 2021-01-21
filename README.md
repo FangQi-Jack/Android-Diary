@@ -29,6 +29,7 @@
 ##### Handler
 
 * [Handler 原理分析](https://github.com/FangQi-Jack/Android-/blob/main/Android/handler%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90.md)
+* Handler 源码解析
 
 ##### 触摸事件
 
@@ -90,6 +91,8 @@
 
 ##### [Java 虚拟机](https://github.com/FangQi-Jack/Android-/blob/main/Java%E7%9B%B8%E5%85%B3/Java%20%E8%99%9A%E6%8B%9F%E6%9C%BA/Java%20%E8%99%9A%E6%8B%9F%E6%9C%BA.md)
 
+##### 集合
+
 ##### 线程池、线程安全
 
 ##### HashMap、哈希冲突
@@ -137,4 +140,10 @@
 ## 算法
 
 ##### [算法复杂度分析](https://github.com/FangQi-Jack/Android-/blob/main/%E7%AE%97%E6%B3%95/%E5%A4%8D%E6%9D%82%E5%BA%A6.md)
+
+
+
+## 设计模式
+
+TODO
 
