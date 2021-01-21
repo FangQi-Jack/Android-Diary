@@ -28,23 +28,31 @@
 
 ##### Handler
 
+* [Handler 原理分析](https://github.com/FangQi-Jack/Android-/blob/main/Android/handler%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90.md)
+
 ##### 触摸事件
 
 ##### View 绘制流程
 
-##### Binder
+##### Binder、AIDL
 
 
 
 ## Android 相关
 
+##### [生命周期](https://github.com/FangQi-Jack/Android-/blob/main/Android/%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.md)
+
+##### [启动模式](https://github.com/FangQi-Jack/Android-/blob/main/Android/Activity%20launchMode.md)
+
 ##### SparseArray
 
-##### 性能优化
+##### 性能优化、UI 优化
 
 ##### 组件化
 
 ##### 热修复
+
+##### [Handler VS Thread VS AsyncTask](https://github.com/FangQi-Jack/Android-/blob/main/Android/Handler%20VS%20Thread%20VS%20AsyncTask.md)
 
 
 
@@ -58,7 +66,7 @@
 
 ## JetPack 组件
 
-#####ViewModel
+##### ViewModel
 
 ##### LiveData
 
@@ -89,6 +97,8 @@
 ##### 反射
 
 ##### 注解
+
+##### JNI
 
 
 
