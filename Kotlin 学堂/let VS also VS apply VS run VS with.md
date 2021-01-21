@@ -98,7 +98,13 @@ public inline fun <T, R> with(receiver: T, block: T.() -> R): R {
 * **block**：let 和 also 拥有显示参数，其他方法是隐式参数。
 * **返回结果**：also 和 apply 的返回结果就是它的 receiver，而其他方法的返回结果是 block 的执行结果。
 
+
+
 # 何时使用？
 
-TODO
+* 不需要使用 receiver 的任何方法，同时也希望返回 receiver 时**使用 apply**。通常是在初始化一个对象时。
+* 无需访问 receiver 的属性或者修改 receiver 的属性时**使用 also**。如果 block 需要返回不同值时**不要使用 also**。
+* 操作可空值或者将一个空值转换为另一个空值或者限制一个局部变量的范围时**使用 let**。
+* 操作非空值并无需返回结果时**使用 with**。
+* 当需要计算某些值或者希望限制多个局部变量的范围或者将显示参数转换为隐式接收者时**使用 run**。
 
