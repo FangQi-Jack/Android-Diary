@@ -18,7 +18,7 @@
 ![](https://github.com/FangQi-Jack/Android-/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/ClassLoader/ClassLoader%20%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png)
 ## 双亲委托模式
 类加载器查找 Class 所采用的的是双亲委托模式，也就是首先判断该 Class 是否已经加载，如果没有则不是自身去查找而是委托给父加载器进行查找，这样依次向上递归，直到委托到最顶层的 Bootstrap ClassLoader，如果 Bootstrap ClassLoader 找到了该 Class，则直接返回，否则继续一次向下查找，如果没有找到则最后交由自身去查找。
-![](/Java 虚拟机/ClassLoader 的双亲委托模式.png)
+![](https://github.com/FangQi-Jack/Android-/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/ClassLoader/ClassLoader%20%E7%9A%84%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%89%98%E6%A8%A1%E5%BC%8F.png)
 采用双亲委托模式主要有两点好处：
 * 避免重复加载
 * 更加安全
@@ -50,7 +50,7 @@
 * **PathClassLoader**
     用来加载系统类和应用程序的类。继承自 BaseDexClassLoader，方法都在 BaseDexClassLoader 中实现。
 ## Android 8.0 中的 ClassLoader 的继承关系
-![](Android 8.0 ClassLoader 的继承关系.png)
+![](https://github.com/FangQi-Jack/Android-/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/ClassLoader/Android%208.0%20ClassLoader%20%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png)
 ## ClassLoader 的加载过程
 Android 中的 ClassLoader 同样采用双亲委托模式。ClassLoader 的 loadClass 方法定义在 ClassLoader 中：
 ```
@@ -263,7 +263,7 @@ preload 方法中又调用了 ZygoteInit 的 preloadClasses 方法：
            }
        }
    }
-```
+   ```
 preloadClasses 方法用于 Zygote 进程初始化时预加载常用类。Class 的 forName 方法：
    ```
 @CallerSensitive
@@ -283,7 +283,7 @@ preloadClasses 方法用于 Zygote 进程初始化时预加载常用类。Class 
        }
        return result;
    }
-```
+   ```
 在 Class 的 forName 方法中创建了 BootClassLoader，并将它传入了 classForName 方法中，该方法是 Native 方法。至此，BootClassLoader 就创建完成了。
 ## PathClassLoader 的创建
 Zygote 进程启动 SystemServer 进程时会调用 ZygoteInit 的 startSystemServer 方法，其中，Zygote 通过 fork 自身创建了子进程（SystemServer）后，如果返回的 pid 为 0 则说明当前代码运行在新创建的 SystemServer 进程中，则会执行 handleSystemServerProcess 方法：
@@ -319,7 +319,7 @@ static PathClassLoader createPathClassLoader(String classPath, int targetSdkVers
    }
 ```
 在 createPathClassLoader 中又调用了PathClassLoaderFactory 的 createClassLoader 方法：
-   ```
+```
 public static PathClassLoader createClassLoader(String dexPath,
                                                    String librarySearchPath,
                                                    String libraryPermittedPath,
@@ -343,3 +343,5 @@ public static PathClassLoader createClassLoader(String dexPath,
 ```
 在 PathClassLoaderFactory 的 createClassLoader 方法中会创建 PathClassLoader。说明 PathClassLoader 是在 SystemServer 进程中采用工厂模式创建的。
 
+
+```
