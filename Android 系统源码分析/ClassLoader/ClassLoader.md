@@ -15,7 +15,7 @@
 * Custom ClassLoader
     自定义类加载器，通过集成 java.lang.ClassLoader 的方式来实现自定义类加载器。
 ## ClassLoader 的继承关系
-![](/Java 虚拟机/ClassLoader 的继承关系.png)
+![](https://github.com/FangQi-Jack/Android-/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/ClassLoader/ClassLoader%20%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png)
 ## 双亲委托模式
 类加载器查找 Class 所采用的的是双亲委托模式，也就是首先判断该 Class 是否已经加载，如果没有则不是自身去查找而是委托给父加载器进行查找，这样依次向上递归，直到委托到最顶层的 Bootstrap ClassLoader，如果 Bootstrap ClassLoader 找到了该 Class，则直接返回，否则继续一次向下查找，如果没有找到则最后交由自身去查找。
 ![](/Java 虚拟机/ClassLoader 的双亲委托模式.png)
