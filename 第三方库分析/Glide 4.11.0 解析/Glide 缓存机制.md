@@ -6,18 +6,19 @@ Glide 的缓存主要分为两块：**内存缓存（Memory Cache）**和**磁�
 
 ## Glide 的缓存
 在开启图片加载任务之前，Glide 会做多重检查：
-* Active Resources（活动资源） - 要加载的图片是否正在其他 View 上展示？
+* **Active Resources（活动资源）**- 要加载的图片是否正在其他 View 上展示？
 
-* Memory Cache（内存缓存）- 要加载的图片是否之前被加载到内存中了？
+* **Memory Cache（内存缓存）**- 要加载的图片是否之前被加载到内存中了？
 
-* Resource（资源）- 要加载的图片之前是否已经被解码、转换并写入磁盘缓存？
+* **Resource（资源）**- 要加载的图片之前是否已经被解码、转换并写入磁盘缓存？
 
-* Data（数据）- 之前是否已将图片的数据写入磁盘缓存中？
+* **Data（数据）**- 之前是否已将图片的数据写入磁盘缓存中？
 
   前两步检查图片是否已经存在于内存缓存中，如果是则直接返回。后两步检查图片数据是否已保存在磁盘缓存中，如果是，则异步地返回数据。
   如果内存缓存和磁盘缓存中都没有找到，则 Glide 会从原始资源（如 Url，Uri 或者 File）中获取图片数据。
 ## CacheKeys
 在 Glide V4 中，cache keys 至少包含以下两种元素：
+
 **1、请求加载的模型（File、Url、Uri）。对于自定义模型，必须正确实现 `hashCode()` 和 `equals()` 两个方法。**
 **2、签名（可选）**
 
@@ -35,7 +36,8 @@ Glide 的缓存主要分为两块：**内存缓存（Memory Cache）**和**磁�
 
 ## EngineKey
 An in memory only cache key used to multiplex loads.（仅用于内存缓存的多路复用加载的 cache key）
-在 Glide 的 load 方法中创建 SingleRequest 并开启任务时，在 Engine 的 load 方法中会调用 `EngineKeyFactory` 的 `buildKey` 方法，根据入参生成对应的 EngineKey。
+在 Glide 的 into 方法中创建 SingleRequest 并开启任务时，在 Engine 的 load 方法中会调用 `EngineKeyFactory` 的 `buildKey` 方法，根据入参生成对应的 EngineKey。
+
 ```java
 public <R> LoadStatus load(
       GlideContext glideContext,
@@ -241,7 +243,7 @@ void cleanupActiveReference(@NonNull ResourceWeakReference ref) {
     listener.onResourceReleased(ref.key, newResource);
   }
 ```
-移除 `activeEngineResources` 中对应的 key。接着如果可以换成并且对应的 resource 不为 null，则创建一个新的 EngineReource 并回调 onResourceReleased，该方法由 Engine 实现：
+移除 `activeEngineResources` 中对应的 key。接着如果可以缓存并且对应的 resource 不为 null，则创建一个新的 EngineReource 并回调 onResourceReleased，该方法由 Engine 实现：
 ```java
 public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedListener, EngineResource.ResourceListener {
     ...
@@ -291,6 +293,7 @@ static final class ResourceWeakReference extends WeakReference<EngineResource<?>
 ```
 ResourceWeakReference 继承自 WeakReference，所以它是弱引用类型。
 再次回到 Engine 的 loadFromActiveResouces 方法中，如果获取到的 EngineSource 对象不为 null，则会调用 EngineSource 的 acquire 方法：
+
 ```java
 /**
    * Increments the number of consumers using the wrapped resource. Must be called on the main
@@ -506,9 +509,9 @@ private void runGenerators() {
       // PMD.AvoidInstantiatingObjectsInLoops The loop iterates a limited number of times
       // and the actions it performs are much more expensive than a single allocation.
       @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-        // 创建 DataCacheKey
+      // 创建 DataCacheKey
       Key originalKey = new DataCacheKey(sourceId, helper.getSignature());
-     // 通过 DataCacheKey 获取对应的 File
+      // 通过 DataCacheKey 获取对应的 File
       cacheFile = helper.getDiskCache().get(originalKey);
       if (cacheFile != null) {
         this.sourceKey = sourceId;
