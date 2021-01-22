@@ -47,7 +47,11 @@
 
 ##### SparseArray
 
+##### RecyclerView
+
 ##### 性能优化、UI 优化
+
+##### MVVM、MVP、MVC
 
 ##### 组件化
 
@@ -56,6 +60,8 @@
 ##### 插件化
 
 ##### [Handler VS Thread VS AsyncTask](https://github.com/FangQi-Jack/Android-/blob/main/Android/Handler%20VS%20Thread%20VS%20AsyncTask.md)
+
+##### WebView 优化
 
 
 
@@ -155,5 +161,11 @@ TODO
 
 ## 计算机网络
 
-TODO
+##### 网络优化、DNS 优化
+
+##### WebSocket
+
+##### Http VS Https
+
+
 
