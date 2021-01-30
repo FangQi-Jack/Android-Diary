@@ -31,9 +31,10 @@
 * [Handler 原理分析](https://github.com/FangQi-Jack/Android-/blob/main/Android/handler%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90.md)
 * Handler 源码解析
 
-##### 触摸事件
+##### View
 
-##### [View 绘制流程](https://github.com/FangQi-Jack/Android-/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/View/View%20%E7%BB%98%E5%88%B6%E6%B5%81%E7%A8%8B.md)
+* [View 事件分发机制](https://github.com/FangQi-Jack/Android-/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/View/View%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6.md)
+* [View 绘制流程](https://github.com/FangQi-Jack/Android-/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/View/View%20%E7%BB%98%E5%88%B6%E6%B5%81%E7%A8%8B.md)
 
 ##### Binder、AIDL
 
