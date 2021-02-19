@@ -1,6 +1,7 @@
 # **Java 的 ClassLoader**
 ## ClassLoader 的类型
 * Bootstrap ClassLoader
+
 C/C++ 实现的类加载器，用于加载指定的 JDK 的核心类库，如 java.lang，java.uti 等这些系统类。Java 虚拟机的启动就是通过 Bootstrap ClassLoader 创建一个初始类来完成的。它用来加载以下目录中的类库：
     * $JAVA_HOME/jre/lib
     * -Xbootclasspath 参数指定的目录
