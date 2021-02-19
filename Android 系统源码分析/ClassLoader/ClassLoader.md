@@ -2,19 +2,22 @@
 ## ClassLoader 的类型
 * Bootstrap ClassLoader
 
-C/C++ 实现的类加载器，用于加载指定的 JDK 的核心类库，如 java.lang，java.uti 等这些系统类。Java 虚拟机的启动就是通过 Bootstrap ClassLoader 创建一个初始类来完成的。它用来加载以下目录中的类库：
+   C/C++ 实现的类加载器，用于加载指定的 JDK 的核心类库，如 java.lang，java.uti 等这些系统类。Java 虚拟机的启动就是通过 Bootstrap ClassLoader 创建一个初始类来完成的。它用来加载以下目录中的类库：
     * $JAVA_HOME/jre/lib
     * -Xbootclasspath 参数指定的目录
 * Extensions ClassLoader
-Java 中的实现类为 ExtClassLoader，用于加载 Java 的拓展类，提供除了系统类之外的额外功能。用来加载以下目录：
+
+   Java 中的实现类为 ExtClassLoader，用于加载 Java 的拓展类，提供除了系统类之外的额外功能。用来加载以下目录：
     * $JAVA_HOME/jre/lib/ext
     * 系统属性 java.ext.dir 指定的目录
 * Application ClassLoader
-实现类为 AppClassLoader，也可以称作 System ClassLoader。用来加载以下目录：
+
+   实现类为 AppClassLoader，也可以称作 System ClassLoader。用来加载以下目录：
     * 当前程序的 Classpath 目录
     * 系统属性 java.class.path 指定的目录
 * Custom ClassLoader
-自定义类加载器，通过继承 java.lang.ClassLoader 的方式来实现自定义类加载器。
+
+   自定义类加载器，通过继承 java.lang.ClassLoader 的方式来实现自定义类加载器。
 ## ClassLoader 的继承关系
 ![](https://github.com/FangQi-Jack/Android-/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/ClassLoader/ClassLoader%20%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png)
 ## 双亲委托模式
