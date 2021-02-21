@@ -268,20 +268,7 @@ public static void loop() {
     me.mInLoop = true;
     final MessageQueue queue = me.mQueue;
 
-    // Make sure the identity of this thread is that of the local process,
-    // and keep track of what that identity token actually is.
-    Binder.clearCallingIdentity();
-    final long ident = Binder.clearCallingIdentity();
-
-    // Allow overriding a threshold with a system prop. e.g.
-    // adb shell 'setprop log.looper.1000.main.slow 1 && stop && start'
-    final int thresholdOverride =
-            SystemProperties.getInt("log.looper."
-                    + Process.myUid() + "."
-                    + Thread.currentThread().getName()
-                    + ".slow", 0);
-
-    boolean slowDeliveryDetected = false;
+    ...
 
     for (;;) {
         Message msg = queue.next(); // might block
@@ -296,33 +283,7 @@ public static void loop() {
             logging.println(">>>>> Dispatching to " + msg.target + " " +
                     msg.callback + ": " + msg.what);
         }
-        // Make sure the observer won't change while processing a transaction.
-        final Observer observer = sObserver;
-
-        final long traceTag = me.mTraceTag;
-        long slowDispatchThresholdMs = me.mSlowDispatchThresholdMs;
-        long slowDeliveryThresholdMs = me.mSlowDeliveryThresholdMs;
-        if (thresholdOverride > 0) {
-            slowDispatchThresholdMs = thresholdOverride;
-            slowDeliveryThresholdMs = thresholdOverride;
-        }
-        final boolean logSlowDelivery = (slowDeliveryThresholdMs > 0) && (msg.when > 0);
-        final boolean logSlowDispatch = (slowDispatchThresholdMs > 0);
-
-        final boolean needStartTime = logSlowDelivery || logSlowDispatch;
-        final boolean needEndTime = logSlowDispatch;
-
-        if (traceTag != 0 && Trace.isTagEnabled(traceTag)) {
-            Trace.traceBegin(traceTag, msg.target.getTraceName(msg));
-        }
-
-        final long dispatchStart = needStartTime ? SystemClock.uptimeMillis() : 0;
-        final long dispatchEnd;
-        Object token = null;
-        if (observer != null) {
-            token = observer.messageDispatchStarting();
-        }
-        long origWorkSource = ThreadLocalWorkSource.setUid(msg.workSourceUid);
+        ...
         try {
           	// 调用 Handler 的 dispatchMessage 方法处理消息
             msg.target.dispatchMessage(msg);
@@ -331,33 +292,11 @@ public static void loop() {
             }
             dispatchEnd = needEndTime ? SystemClock.uptimeMillis() : 0;
         } catch (Exception exception) {
-            if (observer != null) {
-                observer.dispatchingThrewException(token, msg, exception);
-            }
-            throw exception;
+            ...
         } finally {
-            ThreadLocalWorkSource.restore(origWorkSource);
-            if (traceTag != 0) {
-                Trace.traceEnd(traceTag);
-            }
+            ...
         }
-        if (logSlowDelivery) {
-            if (slowDeliveryDetected) {
-                if ((dispatchStart - msg.when) <= 10) {
-                    Slog.w(TAG, "Drained");
-                    slowDeliveryDetected = false;
-                }
-            } else {
-                if (showSlowLog(slowDeliveryThresholdMs, msg.when, dispatchStart, "delivery",
-                        msg)) {
-                    // Once we write a slow delivery log, suppress until the queue drains.
-                    slowDeliveryDetected = true;
-                }
-            }
-        }
-        if (logSlowDispatch) {
-            showSlowLog(slowDispatchThresholdMs, dispatchStart, dispatchEnd, "dispatch", msg);
-        }
+        ...
 
         if (logging != null) {
             logging.println("<<<<< Finished to " + msg.target + " " + msg.callback);
