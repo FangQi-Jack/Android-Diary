@@ -69,7 +69,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
 }
 ```
 
-可以看到在 `subscribe` 方法中调用了 `subscribeActual(observer)` 方法，从方法名可以看出，此方法事件完成了订阅。`subscribeActual(observer)` 是一个抽象方法，其实现类如 `ObservableCreate`。
+可以看到在 `subscribe` 方法中调用了 `subscribeActual(observer)` 方法，从方法名可以看出，此方法实际完成了订阅。`subscribeActual(observer)` 是一个抽象方法，其实现类如 `ObservableCreate`。
 
 #### ObservableCreate.subscribeActual
 
