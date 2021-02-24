@@ -137,6 +137,7 @@
 ##### RxJava
 
 * [RxJava 源码分析一](https://github.com/FangQi-Jack/Android-/blob/main/%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E5%88%86%E6%9E%90/RxJava/RxJava%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B8%80.md)
+* [RxJava 源码分析二-切换线程](https://github.com/FangQi-Jack/Android-/blob/main/%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E5%88%86%E6%9E%90/RxJava/RxJava%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%BA%8C-%E7%BA%BF%E7%A8%8B%E5%88%87%E6%8D%A2.md)
 
 ##### EventBus
 
