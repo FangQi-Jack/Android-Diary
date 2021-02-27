@@ -183,8 +183,8 @@ public final int getScrollY() {
 点击事件的分发过程由三个方法共同完成：`dispatchTouchEvent`、`onInterceptTouchEvent`、`onTouchEvent`。
 
 * 同一个事件序列指从手指接触屏幕开始到手指离开屏幕结束。即有 ACTION_DOWN 事件开始，中间包含数量不定的 ACTION_MOVE，以 ACTION_UP 结束。
-* 通常一个时间序列只能被一个 View 拦截并消耗。
-* 如果某个 View 决定拦截，那么这个时间序列都只能由它来处理，并且它的 `onInterceptTouchEvent` 方法不会再被调用。
+* 通常一个事件序列只能被一个 View 拦截并消耗。
+* 如果某个 View 决定拦截，那么这个事件序列都只能由它来处理，并且它的 `onInterceptTouchEvent` 方法不会再被调用。
 * 如果某个 View 不消耗 ACTION_DOWN 事件，那么这个事件序列的后续事件都不会再交给它处理，并且事件将重新交由父元素处理，即父元素的 `onTouchEvent` 方法会被调用。
 * 如果 View 不消耗除 ACTION_DOWN 之外的其他事件，那么这个事件序列将消失，父元素的 `onTouchEvent` 方法不会被调用，当前 View 将持续收到后续事件，最终这个点击事件将由 Activity 处理。
 * ViewGroup 默认不拦截任何事件。
@@ -210,7 +210,7 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 }
 ```
 
-Activity 首页会将事件交由 Window 来进行分发，即 PhoneWindow 的 `superDispatchTouchEvent` 方法：
+Activity 首先会将事件交由 Window 来进行分发，即 PhoneWindow 的 `superDispatchTouchEvent` 方法：
 
 ```java
 public boolean superDispatchTouchEvent(MotionEvent event) {
@@ -358,7 +358,7 @@ private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,
 }
 ```
 
-`mFirstTouchTarget` 是 ViewGroup 中成功处理事件的子元素，当子 View 处理了事件时，`mFirstTouchTarget` 会被指向这个子 View。从源码中可以看到，如果事件为 ACTION_DOWN 或者 `mFirstTouchTarget` 为 null 时，会调用 `onInterceptTouchEvent` 询问 ViewGroup 是否要拦截事件，一旦 ViewGroup 拦截了事件，事件将不会传递到子 View，`mFirstTouchTarget != null` 就不成立，因此后续的 ACTION_MOVE 和 ACTION_UP 事件都不会调用 `onInterceptTouchEvent` 方法。 如果子 View 调用了 `requestDisallowInterceptTouchEvent` 方法，ViewGroup 将无法拦截除了 ACTION_DOWN 之外的所有事件，因为如果事件为 ACTION_DOWN 事件，ViewGroup 会执行 `resetTouchState` 方法清空 FLAG_DISALLOW_INTERCEPT 标记位。紧接着，如果 ViewGroup 没有拦截事件，那么事件将分发给子 View 处理，遍历所有子 View，判断子 View 是否能接受事件（子 View 当前是否在播放动画、点击事件的坐标是否落在子 View 区域内），然后调用 `dispatchTransformedTouchEvent` 方法，该方法内部实际调用了子 View 的 `dispatchTouchEvent` 方法，这样事件就传递到了子 View，当子 View 的 `dispatchTouchEvent` 方法返回 `true` 时，那么 `addTouchTarget` 方法将被执行，在这个方法中，`mFirstTouchTarget` 将被赋值，指向处理事件的 view。如果遍历了所有子 View 后事件仍然没有被消费（1、ViewGroup 没有子 View；2、子 View 的 `dispatchTouchEvent` 返回了 `false`），此时，事件将由 ViewGroup 处理。
+`mFirstTouchTarget` 是 ViewGroup 中成功处理事件的子元素，当子 View 处理了事件时，`mFirstTouchTarget` 会被指向这个子 View。从源码中可以看到，如果事件为 ACTION_DOWN 或者 `mFirstTouchTarget` 为 null 时，会调用 `onInterceptTouchEvent` 询问 ViewGroup 是否要拦截事件，一旦 ViewGroup 拦截了事件，事件将不会传递到子 View，`mFirstTouchTarget != null` 就不成立，因此后续的 ACTION_MOVE 和 ACTION_UP 事件都不会调用 `onInterceptTouchEvent` 方法。 如果子 View 调用了 `requestDisallowInterceptTouchEvent` 方法，ViewGroup 将无法拦截除了 ACTION_DOWN 之外的所有事件，因为如果事件为 ACTION_DOWN 事件，ViewGroup 会执行 `resetTouchState` 方法清空 FLAG_DISALLOW_INTERCEPT 标记位。紧接着，如果 ViewGroup 没有拦截事件，那么事件将分发给子 View 处理，遍历所有子 View，判断子 View 是否能接收事件（子 View 当前是否在播放动画、点击事件的坐标是否落在子 View 区域内），然后调用 `dispatchTransformedTouchEvent` 方法，该方法内部实际调用了子 View 的 `dispatchTouchEvent` 方法，这样事件就传递到了子 View，当子 View 的 `dispatchTouchEvent` 方法返回 `true` 时，那么 `addTouchTarget` 方法将被执行，在这个方法中，`mFirstTouchTarget` 将被赋值，指向处理事件的 view。如果遍历了所有子 View 后事件仍然没有被消费（1、ViewGroup 没有子 View；2、子 View 的 `dispatchTouchEvent` 返回了 `false`），此时，事件将由 ViewGroup 处理。
 
 #### View 对点击事件的处理过程
 
