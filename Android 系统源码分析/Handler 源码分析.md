@@ -129,6 +129,7 @@ boolean enqueueMessage(Message msg, long when) {
 
         // We can assume mPtr != 0 because mQuitting is false.
         if (needWake) {
+          	// 唤醒
             nativeWake(mPtr);
         }
     }
@@ -148,9 +149,11 @@ Message next() {
     int nextPollTimeoutMillis = 0;
     for (;;) {
       if (nextPollTimeoutMillis != 0) {
-        Binder.flushPendingCommands();
+        	// 唤醒
+        	Binder.flushPendingCommands();
       }
 
+      // 阻塞
       nativePollOnce(ptr, nextPollTimeoutMillis);
 
       synchronized (this) {
