@@ -68,12 +68,13 @@ class LifecycleBoundObserver extends ObserverWrapper implements LifecycleEventOb
 }
 ```
 
-在生命周期变化时会回调 `onStateChanged` 方法，在此方法中则会执行 `activeStateChanged` 方法。
+在生命周期变化时会回调 `onStateChanged` 方法，在此方法中则会执行 `activeStateChanged` 方法，传入参数为 `shouldBeActive()`，可以看到此方法返回 `true` 需要当前生命周期至少为 `STARTED`。
 
 ```java
 private abstract class ObserverWrapper {
     final Observer<? super T> mObserver;
     boolean mActive;
+  	// 上次数据版本
     int mLastVersion = START_VERSION;
 
     ObserverWrapper(Observer<? super T> observer) {
@@ -147,7 +148,7 @@ void dispatchingValue(@Nullable ObserverWrapper initiator) {
 }
 ```
 
-在 `dispatchingValue` 方法中会执行 `considerNotify` 方法，在该方法中会调用 `androidx.lifecycle.Observer` 的 `onChanged` 方法。
+在 `dispatchingValue` 方法中会执行 `considerNotify` 方法，在该方法中判断激活状态和数据版本，然后会调用 `androidx.lifecycle.Observer` 的 `onChanged` 方法。
 
 
 
