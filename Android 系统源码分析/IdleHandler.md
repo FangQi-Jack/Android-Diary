@@ -1,13 +1,13 @@
 # IdleHandler
 ## 使用方式
-```
+```kotlin
 Looper.myQueue().addIdleHandler {
     // do something
     false // or true
 }
 ```
 ## 源码
-```
+```java
 /**
  * Callback interface for discovering when a thread is going to block
  * waiting for more messages.
@@ -25,7 +25,7 @@ public static interface IdleHandler {
 ```
 可以看到 `IdleHandler` 是一个静态接口，且只有一个方法。它的作用就是在 `MessageQueue` 空闲时执行某些代码或任务，此处空闲指的是 **消息队列中没有消息需要处理了，或者下一个要处理的消息还未到时间**。
 ## 如何实现的空闲处理？
-```
+```java
 Message next() {
     // ...
 
