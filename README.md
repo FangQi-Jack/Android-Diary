@@ -30,6 +30,7 @@
 
 * [Handler 原理分析](https://github.com/FangQi-Jack/Android-/blob/main/Android/handler%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90.md)
 * [Handler 源码解析](https://github.com/FangQi-Jack/Android-/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/Handler%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90.md)
+* [IdleHandler](https://github.com/FangQi-Jack/Android-Diary/blob/main/Android%20%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/IdleHandler.md)
 
 ##### View
 
@@ -160,6 +161,7 @@
 ## 设计模式
 
 * [设计模式一](https://github.com/FangQi-Jack/Android-Diary/blob/main/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B8%80.md)
+* [设计模式二](https://github.com/FangQi-Jack/Android-Diary/blob/main/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%BA%8C.md)
 
 
 
